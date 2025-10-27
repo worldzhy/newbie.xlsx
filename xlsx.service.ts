@@ -10,6 +10,14 @@ export class XLSXService {
     this.workbook = XLSX.utils.book_new();
   }
 
+  getSheets(): string[] {
+    return this.workbook.SheetNames;
+  }
+
+  //**********************/
+  //* Load file          */
+  //**********************/
+
   loadLocalFile(filePath: string) {
     this.workbook = XLSX.readFile(filePath);
   }
@@ -18,14 +26,51 @@ export class XLSXService {
     this.workbook = XLSX.read(file.buffer);
   }
 
-  getSheets(): string[] {
-    return this.workbook.SheetNames;
+  loadBuffer(buffer: Buffer) {
+    this.workbook = XLSX.read(buffer);
   }
 
-  getColumns(sheetName: string): string[] {
+  //************************/
+  //* Get columns and rows */
+  //************************/
+
+  getColumnsBySheetIndex(index: number): string[] {
+    const sheet = this.workbook.Sheets[this.workbook.SheetNames[index]];
+
+    return this.getColumns(sheet);
+  }
+
+  getColumnsBySheetName(name: string): string[] {
+    const sheet = this.workbook.Sheets[name];
+
+    return this.getColumns(sheet);
+  }
+
+  getRowsBySheetIndex(index: number): object[] {
+    const sheet = this.workbook.Sheets[this.workbook.SheetNames[index]];
+    return this.getRows(sheet);
+  }
+
+  getRowsBySheetName(name: string): object[] {
+    const sheet = this.workbook.Sheets[name];
+    return this.getRows(sheet);
+  }
+
+  //**********************/
+  //* Save file          */
+  //**********************/
+
+  writeFile(fileName: string) {
+    XLSX.writeFile(this.workbook, fileName);
+  }
+
+  //**********************/
+  //* Private operations */
+  //**********************/
+
+  private getColumns(sheet: XLSX.WorkSheet): string[] {
     const columns: string[] = [];
 
-    const sheet = this.workbook.Sheets[sheetName];
     if (sheet['!ref']) {
       const range = XLSX.utils.decode_range(sheet['!ref']);
       const startRow = range.s.r; // start in the first row
@@ -46,12 +91,7 @@ export class XLSXService {
     return columns;
   }
 
-  getDataRows(sheetName: string): object[] {
-    const sheet = this.workbook.Sheets[sheetName];
+  private getRows(sheet: XLSX.WorkSheet): object[] {
     return XLSX.utils.sheet_to_json(sheet);
-  }
-
-  writeFile(name: string) {
-    XLSX.writeFile(this.workbook, name);
   }
 }
